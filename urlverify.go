@@ -27,6 +27,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
+var urlRegex = regexp.MustCompile(`https?://[^\s]+|(?:\[[0-9a-fA-F:]+\]|\d{1,3}(?:\.\d{1,3}){3}|[a-zA-Z0-9][-a-zA-Z0-9]*(?:\.[a-zA-Z0-9][-a-zA-Z0-9]*)+)(?::\d+)?(?:/[^\s]*)?`)
+
 type URLType int
 
 const (
@@ -62,8 +64,7 @@ type ValidationResult struct {
 // ExtractAll extracts and validates all URLs and domains from the given text,
 // returning them exactly as they appeared in the original text (without adding schema)
 func ExtractAll(text string) []string {
-	re := regexp.MustCompile(`https?://[^\s]+|(?:\[[0-9a-fA-F:]+\]|\d{1,3}(?:\.\d{1,3}){3}|[a-zA-Z0-9][-a-zA-Z0-9]*(?:\.[a-zA-Z0-9][-a-zA-Z0-9]*)+)(?::\d+)?(?:/[^\s]*)?`)
-	matches := re.FindAllString(text, -1)
+	matches := urlRegex.FindAllString(text, -1)
 
 	var validURLs []string
 	for _, raw := range matches {

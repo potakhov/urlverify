@@ -20,7 +20,7 @@ package main
 
 import (
     "fmt"
-    "github.com/potakhov/urlverify/pkg/urlverify"
+    "github.com/potakhov/urlverify"
 )
 
 func main() {
@@ -65,10 +65,10 @@ Validates a single URL or domain string and returns detailed validation informat
 
 ```go
 type ValidationResult struct {
-    Valid  bool   // Whether the domain is valid
-    Reason string // Explanation of the validation result
-    Type   string // "ip", "domain", or "invalid"
-    TLD    string // The effective TLD or IP address
+    Valid  bool    // Whether the domain is valid
+    Reason string  // Explanation of the validation result
+    Type   URLType // type of the URL
+    TLD    string  // The effective TLD or IP address
 }
 ```
 
