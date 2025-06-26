@@ -10,7 +10,8 @@
 //
 //	text := "Visit https://example.com and check foo.dyndns.org"
 //	validDomains := urlverify.ExtractAll(text)
-//	// Returns: ["https://example.com", "foo.dyndns.org"]
+//
+//	Returns: ["https://example.com", "foo.dyndns.org"]
 //
 //	result := urlverify.ValidateDomain("foo.dyndns.org")
 //	if result.Valid {
@@ -55,10 +56,11 @@ func (t URLType) String() string {
 
 // ValidationResult represents the result of domain validation
 type ValidationResult struct {
-	Valid  bool
-	Reason string
-	Type   URLType
-	TLD    string
+	Valid  bool     // Whether the URL or domain is valid
+	Reason string   // Explanation of the validation result
+	Type   URLType  // Type of URL or domain
+	TLD    string   // The effective TLD, if applicable or an IP address
+	URL    *url.URL // Only set if the URL was successfully parsed
 }
 
 // ExtractAll extracts and validates all URLs and domains from the given text,
@@ -80,12 +82,12 @@ func ExtractAll(text string) []string {
 // ValidateDomain validates a single URL or domain string and returns detailed validation result
 func ValidateDomain(raw string) ValidationResult {
 	// Try to parse as-is first
-	u, err := url.Parse(raw)
+	url, err := url.Parse(raw)
 
-	if err != nil || u.Host == "" {
+	if err != nil || url.Host == "" {
 		// Might be a naked domain like "example.com"
 		testURL := "http://" + raw
-		u, err = url.Parse(testURL)
+		url, err = url.Parse(testURL)
 		if err != nil {
 			return ValidationResult{
 				Valid:  false,
@@ -95,26 +97,27 @@ func ValidateDomain(raw string) ValidationResult {
 		}
 	}
 
-	host := u.Hostname()
-
 	// Check if it's an IP address
-	if ip := net.ParseIP(host); ip != nil {
+	if ip := net.ParseIP(url.Hostname()); ip != nil {
 		return ValidationResult{
 			Valid:  true,
 			Reason: "valid IP address",
 			Type:   URLTypeIP,
 			TLD:    ip.String(),
+			URL:    url,
 		}
 	}
 
 	// Validate domain using publicsuffix
-	return validateDomainName(host)
+	return validateDomainName(url)
 }
 
 // validateDomainName validates a domain name using the public suffix list
-func validateDomainName(host string) ValidationResult {
+func validateDomainName(url *url.URL) ValidationResult {
+	hostname := url.Hostname()
+
 	// Handle edge cases first
-	if host == "" {
+	if hostname == "" {
 		return ValidationResult{
 			Valid:  false,
 			Reason: "empty hostname",
@@ -123,7 +126,7 @@ func validateDomainName(host string) ValidationResult {
 	}
 
 	// Check if it has any dots - if not, it's not a valid domain
-	if !strings.Contains(host, ".") {
+	if !strings.Contains(hostname, ".") {
 		return ValidationResult{
 			Valid:  false,
 			Reason: "no valid TLD found",
@@ -131,7 +134,7 @@ func validateDomainName(host string) ValidationResult {
 		}
 	}
 
-	eTLD, icann := publicsuffix.PublicSuffix(host)
+	eTLD, icann := publicsuffix.PublicSuffix(hostname)
 
 	if eTLD == "" {
 		return ValidationResult{
@@ -147,6 +150,7 @@ func validateDomainName(host string) ValidationResult {
 			Reason: "valid ICANN domain",
 			Type:   URLTypeICANN,
 			TLD:    eTLD,
+			URL:    url,
 		}
 	}
 
@@ -163,6 +167,7 @@ func validateDomainName(host string) ValidationResult {
 				Reason: "valid domain built on ICANN TLD",
 				Type:   URLTypeNonICANN,
 				TLD:    eTLD,
+				URL:    url,
 			}
 		}
 	}
