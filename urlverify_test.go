@@ -165,6 +165,41 @@ func TestExtractAllExactText(t *testing.T) {
 	}
 }
 
+// TestCaseInsensitiveSchemes tests that URLs with uppercase or mixed-case schemes are properly detected
+func TestCaseInsensitiveSchemes(t *testing.T) {
+	text := `
+Test case-insensitive URL schemes:
+- HTTP://example.com
+- HTTPS://example.co.uk/path
+- HttpS://github.com
+- hTtP://google.com
+- HtTpS://stackoverflow.com/questions
+`
+
+	expected := []string{
+		"HTTP://example.com",
+		"HTTPS://example.co.uk/path",
+		"HttpS://github.com",
+		"hTtP://google.com",
+		"HtTpS://stackoverflow.com/questions",
+	}
+
+	result := ExtractAll(text)
+
+	if len(result) != len(expected) {
+		t.Errorf("ExtractAll() returned %d results, want %d", len(result), len(expected))
+		t.Logf("Got: %v", result)
+		t.Logf("Expected: %v", expected)
+		return
+	}
+
+	for i, want := range expected {
+		if i >= len(result) || result[i] != want {
+			t.Errorf("ExtractAll() result[%d] = %q, want %q", i, result[i], want)
+		}
+	}
+}
+
 // Benchmark data
 var (
 	// Text without any URLs or domains

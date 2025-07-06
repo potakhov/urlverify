@@ -28,7 +28,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-var urlRegex = regexp.MustCompile(`https?://[^\s]+|(?:\[[0-9a-fA-F:]+\]|\d{1,3}(?:\.\d{1,3}){3}|[a-zA-Z0-9][-a-zA-Z0-9]*(?:\.[a-zA-Z0-9][-a-zA-Z0-9]*)+)(?::\d+)?(?:/[^\s]*)?`)
+var urlRegex = regexp.MustCompile(`(?i)https?://[^\s]+|(?:\[[0-9a-fA-F:]+\]|\d{1,3}(?:\.\d{1,3}){3}|[a-zA-Z0-9][-a-zA-Z0-9]*(?:\.[a-zA-Z0-9][-a-zA-Z0-9]*)+)(?::\d+)?(?:/[^\s]*)?`)
 
 type URLType int
 
