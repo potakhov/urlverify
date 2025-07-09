@@ -10,6 +10,8 @@ A Go library for extracting and validating URLs and domains from text.
 - Handles dynamic DNS services (e.g., dyndns.org, no-ip.org) 
 - Returns domains exactly as they appear in the original text
 - Provides detailed validation results for testing and debugging
+- Supports internationalized domain names
+- Preserves the original case/format from the original text in the result
 
 ## Usage
 
