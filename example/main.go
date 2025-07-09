@@ -18,6 +18,8 @@ func main() {
 	Test case-insensitive schemes: HTTP://github.com and HTTPS://stackoverflow.com and HTTPS://VK.COM
 	
 	Ignore these invalid ones: test.local, fake.invalid
+
+	Test internationalized domains: https://مثال.السعودية, https://книга.рф, https://스타벅스코리아.com
 	`
 
 	fmt.Println("=== URLVerify Library Example ===")
