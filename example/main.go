@@ -15,7 +15,7 @@ func main() {
 	192.168.1.100:8080 and we also support IPv6 at 
 	[2001:db8::1]:443.
 	
-	Test case-insensitive schemes: HTTP://github.com and HTTPS://stackoverflow.com
+	Test case-insensitive schemes: HTTP://github.com and HTTPS://stackoverflow.com and HTTPS://VK.COM
 	
 	Ignore these invalid ones: test.local, fake.invalid
 	`
@@ -44,6 +44,7 @@ func main() {
 		"192.168.1.1",
 		"invalid.fake",
 		"justtext",
+		"HTTPS://VK.COM",
 	}
 
 	for _, testCase := range testCases {

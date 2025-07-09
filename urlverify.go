@@ -114,7 +114,9 @@ func ValidateDomain(raw string) ValidationResult {
 
 // validateDomainName validates a domain name using the public suffix list
 func validateDomainName(url *url.URL) ValidationResult {
-	hostname := url.Hostname()
+	// Lowercase domain for consistency.
+	// See https://datatracker.ietf.org/doc/html/rfc4343 - DNS considered case-insensitive, but publicsuffix don't handle .COM as valid icann.
+	hostname := strings.ToLower(url.Hostname())
 
 	// Handle edge cases first
 	if hostname == "" {
