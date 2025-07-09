@@ -25,6 +25,7 @@ import (
 	"regexp"
 	"strings"
 
+	"golang.org/x/net/idna"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -124,6 +125,21 @@ func validateDomainName(url *url.URL) ValidationResult {
 			Type:   URLTypeInvalid,
 		}
 	}
+
+	// Convert IDN to ASCII (Punycode)
+	var err error
+	hostname, err = idna.ToASCII(hostname)
+	if err != nil {
+		return ValidationResult{
+			Valid:  false,
+			Reason: "invalid domain name: " + err.Error(),
+			Type:   URLTypeInvalid,
+		}
+	}
+
+	// Lowercase domain for consistency.
+	// See https://datatracker.ietf.org/doc/html/rfc4343 - DNS considered case-insensitive, but publicsuffix don't handle .COM as valid icann.
+	hostname = strings.ToLower(hostname)
 
 	// Check if it has any dots - if not, it's not a valid domain
 	if !strings.Contains(hostname, ".") {

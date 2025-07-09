@@ -114,6 +114,9 @@ Here are some links:
 - https://dns.17ex.com
 - example.com/index.html
 - server.com:8080/index.html
+- https://مثال.السعودية
+- https://книга.рф
+- https://스타벅스코리아.com
 `
 
 	expected := []string{
@@ -128,6 +131,9 @@ Here are some links:
 		"https://dns.17ex.com",
 		"example.com/index.html",
 		"server.com:8080/index.html",
+		"https://مثال.السعودية",
+		"https://книга.рф",
+		"https://스타벅스코리아.com",
 	}
 
 	result := ExtractAll(text)
