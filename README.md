@@ -55,6 +55,14 @@ if result.Valid {
 
 ## API
 
+### `ParseURL(raw string) (*url.URL, error)`
+
+Parses a raw URL string and returns a `*url.URL` object or an error if parsing fails.
+
+### `NormalizeURI(uri string) (string, error)`
+
+NormalizeURI normalizes a URI by converting it to ASCII and lowercasing it. Returns the normalized URI or an error if the conversion fails.
+
 ### `ExtractAll(text string) []string`
 
 Extracts all valid URLs and domains from the given text, returning them exactly as they appeared in the original text.
