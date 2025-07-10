@@ -55,7 +55,7 @@ func (t URLType) String() string {
 	}
 }
 
-// ValidationResult represents the result of domain validation
+// ValidationResult represents the result of domain validation.
 type ValidationResult struct {
 	Valid  bool     // Whether the URL or domain is valid
 	Reason string   // Explanation of the validation result
@@ -65,7 +65,7 @@ type ValidationResult struct {
 }
 
 // ExtractAll extracts and validates all URLs and domains from the given text,
-// returning them exactly as they appeared in the original text (without adding schema)
+// returning them exactly as they appeared in the original text (without adding schema).
 func ExtractAll(text string) []string {
 	matches := urlRegex.FindAllString(text, -1)
 
@@ -80,40 +80,62 @@ func ExtractAll(text string) []string {
 	return validURLs
 }
 
-// ValidateDomain validates a single URL or domain string and returns detailed validation result
-func ValidateDomain(raw string) ValidationResult {
+// ParseURL tries to parse a single URL or domain string and returns a pointer to url.URL structure and/or error.
+func ParseURL(raw string) (*url.URL, error) {
 	// Try to parse as-is first
-	url, err := url.Parse(raw)
+	u, err := url.Parse(raw)
 
-	if err != nil || url.Host == "" {
+	if err != nil || u.Host == "" {
 		// Might be a naked domain like "example.com"
 		testURL := "http://" + raw
-		url, err = url.Parse(testURL)
-		if err != nil {
-			return ValidationResult{
-				Valid:  false,
-				Reason: "parse error: " + err.Error(),
-				Type:   URLTypeInvalid,
-			}
+		u, err = url.Parse(testURL)
+	}
+
+	return u, err
+}
+
+// NormalizeURI normalizes a URI by converting it to ASCII and lowercasing it.
+// Returns the normalized URI or an error if the conversion fails.
+func NormalizeURI(uri string) (string, error) {
+	uri, err := idna.ToASCII(uri)
+	if err != nil {
+		return "", err
+	}
+
+	// Lowercase uri for consistency.
+	// See https://datatracker.ietf.org/doc/html/rfc4343 - DNS considered case-insensitive, but publicsuffix don't handle .COM as valid icann.
+	uri = strings.ToLower(uri)
+
+	return uri, nil
+}
+
+// ValidateDomain validates a single URL or domain string and returns detailed validation result.
+func ValidateDomain(raw string) ValidationResult {
+	u, err := ParseURL(raw)
+	if err != nil {
+		return ValidationResult{
+			Valid:  false,
+			Reason: "parse error: " + err.Error(),
+			Type:   URLTypeInvalid,
 		}
 	}
 
 	// Check if it's an IP address
-	if ip := net.ParseIP(url.Hostname()); ip != nil {
+	if ip := net.ParseIP(u.Hostname()); ip != nil {
 		return ValidationResult{
 			Valid:  true,
 			Reason: "valid IP address",
 			Type:   URLTypeIP,
 			TLD:    ip.String(),
-			URL:    url,
+			URL:    u,
 		}
 	}
 
 	// Validate domain using publicsuffix
-	return validateDomainName(url)
+	return validateDomainName(u)
 }
 
-// validateDomainName validates a domain name using the public suffix list
+// validateDomainName validates a domain name using the public suffix list.
 func validateDomainName(url *url.URL) ValidationResult {
 	hostname := url.Hostname()
 
@@ -126,9 +148,8 @@ func validateDomainName(url *url.URL) ValidationResult {
 		}
 	}
 
-	// Convert IDN to ASCII (Punycode)
 	var err error
-	hostname, err = idna.ToASCII(hostname)
+	hostname, err = NormalizeURI(hostname)
 	if err != nil {
 		return ValidationResult{
 			Valid:  false,
@@ -136,10 +157,6 @@ func validateDomainName(url *url.URL) ValidationResult {
 			Type:   URLTypeInvalid,
 		}
 	}
-
-	// Lowercase domain for consistency.
-	// See https://datatracker.ietf.org/doc/html/rfc4343 - DNS considered case-insensitive, but publicsuffix don't handle .COM as valid icann.
-	hostname = strings.ToLower(hostname)
 
 	// Check if it has any dots - if not, it's not a valid domain
 	if !strings.Contains(hostname, ".") {
